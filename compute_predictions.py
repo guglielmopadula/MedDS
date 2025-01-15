@@ -21,12 +21,8 @@ training_data=cp.array(np.load(config.download_path+"/training_data.npy"))
 training_data_mean=cp.mean(training_data,axis=0)
 training_data=training_data-training_data_mean
 
-scale_ratio=(config.unc*(cp.max(training_data)-cp.min(training_data)))
 U,S,V=cp.linalg.svd(training_data,full_matrices=False)
 S=S/cp.sqrt(len(training_data))
-S=S[S>scale_ratio]
-#print(S)
-#print(scale_ratio)
 rank=cp.argmin(cp.abs(S-1/10*S[0]))+1
 if config.device=="gpu":
     rank=rank.get()
@@ -35,12 +31,7 @@ U=U[:,:rank]
 V=V[:rank]
 U=cp.sqrt(len(training_data))*U
 W=cp.diag(S)@V
-M=W@W.T
-M=cp.diag(M)+(scale_ratio**2)*cp.eye(len(M))
-M=cp.linalg.inv(M)
-lat_var_vecs=scale_ratio**2*cp.diag(M)
-lat_std_vecs=cp.sqrt(lat_var_vecs)
-Winv=V.T@cp.diag(1/S)
+Winv=V.T@cp.diag(1/(S))
 
 err=U@W-training_data
 err_std=cp.std(err,axis=0)
@@ -56,7 +47,7 @@ len_I=training_data.shape[0]-1
 
 
 def k(x,y):
-    return cp.sqrt(1/(1+2*lat_var_vecs).reshape(-1,1,1))*cp.exp(-((x.T.reshape(x.shape[1],x.shape[0],1)-y.T.reshape(y.shape[1],1,y.shape[0]))**2)/(2*(1+2*lat_var_vecs).reshape(-1,1,1)))
+    return cp.exp(-((x.T.reshape(x.shape[1],x.shape[0],1)-y.T.reshape(y.shape[1],1,y.shape[0]))**2)/(2))+3*cp.exp(-((x.T.reshape(x.shape[1],x.shape[0],1)-y.T.reshape(y.shape[1],1,y.shape[0]))**2)/(2*(1e-08)))
 
 
 U_train=U[:-config.timestep]
@@ -65,6 +56,8 @@ k_train=k(U_train,U_train)
 k_test_train=k(U_test,U_train)
 k_test=k(U_test,U_test)
 
+def batched_matmul(X,Y):
+    return cp.einsum('Bik,Bkj ->Bij', X, Y)
 
 #k_train=k(U,U)
 
@@ -85,8 +78,7 @@ diffs_train=b@U
 
 
 
-reg=cp.diag(cp.sum(b**2,axis=1)).reshape(-1,b.shape[0],b.shape[0])*lat_var_vecs.reshape(-1,1,1)
-k_train_reg=k_train+reg#unc*np.eye(len_I).reshape(1,len_I,len_I)#+reg*np.eye(len_I).reshape(1,len_I,len_I)
+k_train_reg=k_train#unc*np.eye(len_I).reshape(1,len_I,len_I)#+reg*np.eye(len_I).reshape(1,len_I,len_I)
 num_times=k_train_reg.shape[1]
 
 #print(k_train.shape)
@@ -150,7 +142,7 @@ lb_qf=binom.ppf(q=0.005,n=rank,p=0.95)/rank
 ub_qf=binom.ppf(q=0.995,n=rank,p=0.95)/rank
 
 data_rec_test=data_U_test@W+training_data_mean+(data_U_test**2)@W2
-std_rec_test=cp.sqrt((std_U_test**2)@(W**2)+(4*data_U_test**2*std_U_test**2+2*std_U_test**4)@(W2**2)+scale_ratio**2)
+std_rec_test=cp.sqrt((std_U_test**2)@(W**2)+(4*data_U_test**2*std_U_test**2+2*std_U_test**4)@(W2**2))
 
 if config.device=="gpu":
     data_rec_test=data_rec_test.get()
@@ -182,4 +174,3 @@ np.save(config.download_path+"/ub.npy",ub_rec_test)
 np.save(config.download_path+"/latent_mean.npy",data_U_test) 
 np.save(config.download_path+"/latent_std.npy",std_U_test)
 np.save(config.download_path+"/matrix.npy",Winv)
-np.save(config.download_path+"/latent_std_vecs.npy",lat_std_vecs)

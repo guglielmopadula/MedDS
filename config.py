@@ -12,7 +12,6 @@ device="gpu" #"gpu" or "cpu"
 #n_train=100 #override if you preder
 
 perc=0.95# this is the target coverage probability of the prediction interval
-unc=0.05# the assumed std of the noise in the data will be unc*(max(data)-min(data))
 
 ###Do not change this part
 current_date = datetime.now().date()

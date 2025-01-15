@@ -13,16 +13,16 @@ Winv=np.load(config.download_path+"/matrix.npy")
 data_U_test=np.load(config.download_path+"/latent_mean.npy")
 std_U_test=np.load(config.download_path+"/latent_std.npy")
 
-lat_std_vecs=np.load(config.download_path+"/latent_std_vecs.npy")
 U_test=testing_data@Winv
 rank=U_test.shape[1]
 lb_qf=binom.ppf(q=0.005,n=rank,p=0.95)/rank
 ub_qf=binom.ppf(q=0.995,n=rank,p=0.95)/rank
 
 
-value=np.mean(np.logical_and(U_test<data_U_test+1.96*np.sqrt(std_U_test**2+lat_std_vecs**2),U_test>data_U_test-1.96*np.sqrt(std_U_test**2+lat_std_vecs**2)))
+value=np.mean(np.logical_and(U_test<data_U_test+1.96*std_U_test,U_test>data_U_test-1.96*std_U_test))
 if lb_qf<=value<=ub_qf:
     print("Model is validated")
 
 else:
+    print(lb_qf,value,ub_qf)
     print("Model is not validated")

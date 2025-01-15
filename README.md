@@ -46,10 +46,6 @@ Only cuda is currently supported.
 perc=0.95
 ```
 this is the target coverage probability of the prediction interval
-```python
-unc=0.05
-```
-this is the assumed std of the noise in the data will be unc*(max(data)-min(data))
 
 ## Second step: download data
 Do
