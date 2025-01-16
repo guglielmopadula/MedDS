@@ -141,6 +141,8 @@ if num_steps>1:
 lb_qf=binom.ppf(q=0.005,n=rank,p=0.95)/rank
 ub_qf=binom.ppf(q=0.995,n=rank,p=0.95)/rank
 
+
+#std_U_test=cp.maximum(std_U_test,cp.ones_like(std_U_test))
 data_rec_test=data_U_test@W+training_data_mean+(data_U_test**2)@W2
 std_rec_test=cp.sqrt((std_U_test**2)@(W**2)+(4*data_U_test**2*std_U_test**2+2*std_U_test**4)@(W2**2))
 
@@ -149,6 +151,7 @@ if config.device=="gpu":
     std_rec_test=std_rec_test.get()
     data_U_test=data_U_test.get()
     std_U_test=std_U_test.get()
+    training_data_mean=training_data_mean.get()
 
 
 
@@ -168,7 +171,7 @@ lb_rec_test=ppf(lb_mode_cdf,data_rec_test,std_rec_test)
 np.save(config.download_path+"/mean.npy",data_rec_test)
 np.save(config.download_path+"/lb.npy",lb_rec_test)
 np.save(config.download_path+"/ub.npy",ub_rec_test)
-
+np.save(config.download_path+"/train_mean.npy",training_data_mean)
 
 #These are needed for the theoretical validation
 np.save(config.download_path+"/latent_mean.npy",data_U_test) 
