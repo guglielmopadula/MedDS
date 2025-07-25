@@ -32,6 +32,7 @@ basins_dict["aega"]=tuple([21.85-eps,24-eps,35.28+eps,42+eps])
 basins_dict["aegb"]=tuple([24-eps,26.25-eps,35.10+eps,42+eps])
 basins_dict["aegc"]=tuple([26.25-eps,28+eps,35.28+eps,42+eps])
 basins_dict["nadr"]=tuple([11.5-eps,20+eps,42.5+eps,46+eps])
+basins_dict["med"]=tuple([-5.55-eps,36.30-eps,30.17+eps,45.98+eps])
 
 
 #[min_bound,max_bound,name,dataset_subname,dataset_index]
@@ -72,3 +73,5 @@ variables_dict={
 
 dataset_names="cmems_mod_med_{}-{}_anfc_4.2km_P1D-m"
 static_dataset="cmems_mod_med_{}_anfc_4.2km_static"
+
+reanalysis_names={"bgc":"med-ogs-{}-rean-d","phy":"med-cmcc-{}-rean-d"}
